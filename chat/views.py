@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import authenticate
 from django.contrib import messages
 import json
 from chat.models import User
@@ -38,18 +37,28 @@ def deleteOtherSessions(request):
     pass
 
 
+def authenticate(username, password):
+    try:
+        user = User.objects.get(username=username)
+        if user.check_password(password):
+            return user
+    except User.DoesNotExist:
+        return None
+
+
 def loginSubmit(request):
     email = request.POST['email']
     password = request.POST['password']
+    print(email, password)
     try:
         if email or password:
-            user_login = authenticate(email=email, password=password)
+            user_login = authenticate(username=email, password=password)
+            print("USERNAME", user_login,
+                  user_login.is_active, user_login.is_delete)
             if user_login is not None:
-                result = User.objects.get(email=email)
-                if not int(result.is_active) and not int(result.is_delete):
-                    request['temp_username'] = user_login.get_username()
+                if user_login.is_active and not user_login.is_delete:
+                    # request['temp_username'] = user_login.get_username()
                     deleteOtherSessions(request)
-
                     return redirect('/chat')
                 else:
                     messages.add_message(
@@ -64,6 +73,7 @@ def loginSubmit(request):
                                  "Warning! Authentication Failed! Try again")
             return redirect("/login")
     except Exception as error:
+        print("ERROR", error)
         messages.add_message(request, messages.WARNING,
                              "Warning! Enter valid email and password")
         return redirect("/login")
