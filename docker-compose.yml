@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  chat_db:
+    image: postgres
+    restart: always
+    container_name: chat_db
+    environment:
+      - POSTGRES_DB=chat_db
+      - POSTGRES_USER=chat
+      - POSTGRES_PASSWORD=root
+    ports:
+      - 5432:5432
+    volumes:
+      - chat_volumn:/var/lib/postgresql/data
+  chat_pgadmin:
+    image: dpage/pgadmin4
+    depends_on:
+      - chat_db
+    ports:
+      - "5051:80"
+    links:
+      - chat_db
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: rushalbarkhade11795@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    container_name: chat_pgadmin
+
+volumes:
+  chat_volumn: null
